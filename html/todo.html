@@ -1,0 +1,231 @@
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+		<title>mytodos</title>
+	</head>
+	<style>
+		#main{
+	position: absolute;
+	left: 40%;
+	top: 20%
+ }
+ #list{
+	 text-decoration: none;
+	background-color: darkgrey;
+	list-style: none;
+ }
+ #input{
+	 width: 500px;
+	 height: 30px;
+	 font-size: 25px;
+ }
+ .destory{
+  height: 20px;
+  float: right;
+  transition: color 0.2s ease-out;
+ }
+ .listContent{
+	width:465px;
+ }
+ footer{
+	background-color: #31B0D5;
+	width:505px;
+	text-spacing: 5px;
+ }
+ .filter li{
+	 float: right;
+ }
+ .toggle{
+	 float: left;
+ }
+</style>
+	</head>
+	<body>
+		<div id="main">
+			<input id='input' type="text" onkeyup="getInput()"/>
+			<section id="section">
+				<ul id="list">
+				</ul>
+				<footer>
+					<span id="showNum"></span>
+					<span>item left</span>
+					<button onclick="showAll()">All</button>
+					<button onclick="showActive()">Active</button>
+					<button onclick="showCompleted()">Completed</button>
+					<button onclick="removeAllCompleted()">Clear Completed</button>
+				</footer>
+				<div id="test"></div>
+			</section>
+		</div>
+		<script>
+			var input = document.getElementById("input")
+			var ulList = document.getElementById('list')
+			var item = document.getElementById("showNum")
+			var test = document.getElementById("test")
+			var list = []
+			var itemLeft = 0
+			var id = 0
+			var active = []
+			var completed = []
+			var allState = true
+			var activeState = false
+			var completedState = false
+
+			function getInput() {
+				if (input.value != "" && event.keyCode == 13) {
+					list.push({
+							'id': id,
+							'value': input.value,
+							'state': false
+						}),
+						input.value = ""
+					ulList.innerHTML = ""
+					this.renderData(list)
+				}
+				id++
+			}
+
+			function renderData(list) {
+				this.getleftItem()
+				item.innerText = itemLeft
+				for (var i = 0; i < list.length; i++) {
+					ulList.innerHTML += "<li><div class='listContent'><input class='toggle' type='checkbox' onclick ='getNum(" + i +
+						")'><label  ondblclick='modifyData("+i+")'>" + list[i].value +
+						"</label><button class='destory' onclick='removeSingle(this," + i + ")'>删除</button></div></li>"
+				}
+				for (var j = 0; j < ulList.childNodes.length; j++) {
+					ulList.childNodes[j].firstChild.firstChild.checked = list[j].state
+				}
+			}
+
+			function getleftItem() {
+				itemLeft = 0
+				list.forEach(item => {
+					if (item.state === false) {
+						itemLeft++
+					}
+				})
+			}
+
+			function getNum(i) {
+				if (ulList.childNodes[i].firstChild.firstChild.checked === true) {
+					list[i].state = true
+				} else {
+					list[i].state = false
+				}
+			}
+
+			function removeSingle(obj, index) {
+				if (allState) {
+					ulList.removeChild(obj.parentNode.parentNode)
+					list.splice(index, 1)
+				}
+				if (activeState) {
+					ulList.removeChild(obj.parentNode.parentNode)
+					this.removeFun(active[index].id)
+				}
+				if (completedState) {
+					ulList.removeChild(obj.parentNode.parentNode)
+					this.removeFun(completed[index].id)
+				}
+			}
+
+			function removeAllCompleted() {
+				completed.forEach(item => {
+					this.removeFun(item.id)
+				})
+				ulList.innerHTML = ""
+				this.renderData(active)
+			}
+
+			function removeFun(id) {
+				for (var j = 0; j < list.length; j++) {
+					if (id === list[j].id) {
+						list.splice(j, 1)
+					}
+				}
+			}
+
+			function showAll() {
+				this.changeState(true, false, false)
+				ulList.innerHTML = ""
+				this.renderData(list)
+			}
+
+			function showActive() {
+				this.changeState(false, true, false)
+				active = []
+				list.forEach(item => {
+					if (item.state === false) {
+						active.push(item)
+					}
+				})
+				ulList.innerHTML = ""
+				this.renderData(active)
+				console.log(active)
+			}
+
+			function showCompleted() {
+				this.changeState(false, false, true)
+				completed = []
+				list.forEach(item => {
+					if (item.state === true) {
+						completed.push(item)
+					}
+				})
+				ulList.innerHTML = ""
+				this.renderData(completed)
+			}
+
+			function changeState(all, active, complete) {
+				allState = all
+				activeState = active
+				completedState = complete
+			}
+			
+			function modifyData(i){
+				var p=ulList.childNodes[i].firstChild.childNodes[1].textContent
+				ulList.childNodes[i].firstChild.childNodes[1].innerHTML="<input type='text' value='"+p+"' onkeyup='getModifyValue1("+i+",value)' />"
+				console.log(ulList.childNodes[i].firstChild.childNodes[1].value)
+			}
+			function getModifyValue(value){
+				console.log(value)
+					 if(value!=''){
+							ulList.childNodes[0].firstChild.childNodes[1].innerHTML="<label>" + value +
+									"</label>"
+						}
+			}
+			function getModifyValue1(i,value){
+				if(allState){
+					if(value!=''&&event.keyCode==13){
+						ulList.childNodes[i].firstChild.childNodes[1].innerHTML="<label>" + value +
+								"</label>"
+								list[i].value=value
+					}
+				}
+				if(activeState){
+					if(value!=''&&event.keyCode==13){
+						ulList.childNodes[i].firstChild.childNodes[1].innerHTML="<label>" + value +
+								"</label>"
+						list.forEach(item =>{
+							if(item.id===active[i].id){
+								item.value=value
+							}
+						})
+					}
+				}
+				if(completedState){
+					if(value!=''&&event.keyCode==13){
+						ulList.childNodes[i].firstChild.childNodes[1].innerHTML="<label>" + value +
+								"</label>"
+						list.forEach(item =>{
+							if(item.id===completed[i].id){
+								item.value=value
+							}
+						})
+					}
+				}
+			}
+		</script>
+	</body>
+</html>
